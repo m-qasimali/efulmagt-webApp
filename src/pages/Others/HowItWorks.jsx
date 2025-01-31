@@ -44,7 +44,7 @@ export default function HowItWorks(){
                 </div>
             </Carousel>
             <div className="flex justify-center w-full my-6">    
-                <Link to = "/e-fuldmagts/request" className="btn-primary w-[300px] h-[50px] text-center">
+                <Link to = "/home" className="btn-primary w-[300px] h-[50px] text-center">
                     Create Fuldmagt
                 </Link>
             </div>

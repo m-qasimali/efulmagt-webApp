@@ -37,6 +37,7 @@ function SearchBar({ className, setSelectedUser }) {
         items={suggestions}
         onSearch={handleOnSearch}
         onSelect={handleOnSelect}
+        className="outline-none" 
       />
     </div>
   );

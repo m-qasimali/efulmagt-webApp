@@ -11,20 +11,26 @@ const CreatePasscode = () => {
   const [credentials, setCredentials] = useCredentials();
   const navigate = useNavigate();
   const location = useLocation();
-  console.log(location)
+  // console.log(location)
   const createPasscode = async ()=>{
-    console.log(location.state.createPasswordToken);
+    // console.log(location.state.createPasswordToken);
     let reqBody = {
       createPasswordToken : location.state.createPasswordToken,
       pin: passcode.join("")
     }
-    console.log(reqBody);
+    // console.log(reqBody);
     //Send Request and User Information will be returned to 
     let res = await createPassword(reqBody);
 
     
-    navigate('/home')
+    if (!res.data.data.hasOwnProperty('selected')) {
+      res.data.data.selected = "user";
+    };
+
+    
+      
     setCredentials(res.data.data);
+    navigate('/home')
   }
   const[step, setStep] = useState(1);
   return (

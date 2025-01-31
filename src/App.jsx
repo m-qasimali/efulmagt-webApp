@@ -33,11 +33,13 @@ import { getToken, onMessage } from "firebase/messaging";
 import { messaging } from "./firebaseConfig";
 import { addNotifcationId } from "./services/notification.services";
 import { toast } from "react-toastify";
+import { useFetchData } from "./context/FetchDataContext";
 
 const { SERVER_HOST } = import.meta.env;
 
 export default function App() {
   const [credentials, setCredentials] = useCredentials();
+  const {setFetchAgain} = useFetchData();
   async function requestPermission() {
     //requesting permission using Notification API
     
@@ -49,7 +51,7 @@ export default function App() {
 
       //We can send token to server
       addNotifcationId(credentials.authToken, {notificationId: token}).then((res)=>{
-        console.log(res.data.message);
+        // console.log(res.data.message);
       }).catch((err)=>{
         console.log(err.response.data.message);
       })
@@ -61,7 +63,7 @@ export default function App() {
 
 
   const verifyCredentials = useCallback(() => {
-    console.log(credentials);
+    // console.log(credentials);
     if (credentials == null) return;
     fetch("https://backend.e-fuldmagt.dk/" + "user/refreshTokenCall", {
       method: "PUT",
@@ -75,7 +77,7 @@ export default function App() {
     }).then(async (response) => {
       if (response.ok) {
         const responseBody = await response.json();
-        console.log("resBody", responseBody);
+        // console.log("resBody", responseBody);
         setCredentials((oldData) => {
           return {
             ...oldData,
@@ -103,8 +105,8 @@ export default function App() {
   }, [credentials]);
 
   onMessage(messaging, (payload) => {
-    console.log('Received Payload', payload);
     toast(payload.notification.body);
+    setFetchAgain(prev => !prev);
   });
   return (
     <>

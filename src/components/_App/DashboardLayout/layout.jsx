@@ -34,7 +34,7 @@ const DashboardLayout = ({ children }) => {
       text: "Profile",
       path: "/settings",
       navigate: "/settings",
-      Icon: credentials.user.image,
+      Icon: credentials.user?.image || "",
       imgClassName: "rounded-full",
       iconType: "img",
       isSelected: false,

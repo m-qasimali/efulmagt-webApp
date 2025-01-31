@@ -1,15 +1,20 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import logo from "../../assets/dashboard/logo.png";
 import "reactjs-popup/dist/index.css";
 import UserSearchBar from "../../components/UIElements/searchBars/UserSearchBar.jsx";
 import DateSelector from "../../components/UIElements/dateSelectors/dateSelector.jsx";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import PhoneInput from "../../components/UIElements/inputs/PhoneInput.jsx";
 import SignaturePopup from "../../components/UIElements/popups/SignaturePopup.jsx";
 import axios from "axios";
 import { useCredentials } from "../../context/CrendentialsContext.jsx";
 import { toast } from "react-toastify";
-import { createFuldmagt, requestFuldmagt } from "../../services/fuldmagt.services.js";
+import {
+  createFuldmagt,
+  requestFuldmagt,
+  getFuldmagtSpecified,
+} from "../../services/fuldmagt.services.js";
+import Payment from "../../components/UIElements/popups/Payment.jsx";
 
 const PackageCollectionRequest = () => {
   const navigate = useNavigate();
@@ -23,6 +28,8 @@ const PackageCollectionRequest = () => {
   const [expiryDate, setExpiryDate] = useState(new Date());
   const [isSignatureOpen, setIsSignatureOpen] = useState(false);
   const [signatureData, setSignatureData] = useState(null);
+  const [additionalFormData, setAdditionalFormData] = useState([]);
+  const [openedFuldmagt, setOpenedFulgmagt] = useState();
   const [fullName, setFullName] = useState({ firstName: "", lastName: "" });
   const [dateOfBirth, setDateOfBirth] = useState({
     day: "",
@@ -32,18 +39,37 @@ const PackageCollectionRequest = () => {
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [countryCode, setCountryCode] = useState("");
+  const location = useLocation();
+  const [paymentPopupOpen, setPaymentPopup] = useState(false);
+
+  const getASpecificFuldmagt = async () => {
+    const res = await getFuldmagtSpecified(
+      credentials.authToken,
+      location.state.state.item.fuldmagtFormId
+    );
+    setOpenedFulgmagt(res.data.data.fuldmagtForm);
+    setAdditionalFormData(location.state.state.item.additionalFieldsData);
+    setIsRequest(true);
+  };
+  useEffect(() => {
+    if (location.state && location.state.fuldmagt) {
+      setOpenedFulgmagt(location.state.fuldmagt);
+    } else if (location.state.state.item) {
+      getASpecificFuldmagt();
+    }
+  }, [location]);
+
   const handleCountryCodeChange = (code) => {
     setCountryCode(code);
   };
 
-  const handleSelectUser = (user)=>{
+  const handleSelectUser = (user) => {
     setSelectedUser(user);
     setChooseMannually(false);
-  }
+  };
 
   const handleSignatureSave = async (signature) => {
     setSignatureData(signature);
-    setIsSignatureOpen(false);
 
     let expiry = null;
     let currentDate = new Date();
@@ -53,19 +79,23 @@ const PackageCollectionRequest = () => {
       expiry = new Date(expiryDate);
     }
 
-    if(expiry<new Date()){
-        console.log(expiryDate);
-        console.log(new Date());
-        toast.error("Expiry Date must be greater than issue date");
-        return
+    if (expiry < new Date()) {
+      toast.error("Expiry Date must be greater than issue date");
+      return;
     }
 
+    if (additionalFormData.length !== openedFuldmagt.additionalFields.length) {
+      toast.error("Fill all form fields!");
+      return;
+    }
+
+    if (!isRequest) {
+      setIsSignatureOpen(true);
+    }
     const formattedExpiry = expiry.toISOString().replace(/\.\d{3}Z$/, "+0000");
 
     let user = null;
     if (isChooseMannually) {
-      console.log(dateOfBirth.year, dateOfBirth.month, dateOfBirth.day);
-
       const dob = new Date(
         `${dateOfBirth.year}-${dateOfBirth.month}-${dateOfBirth.day}`
       );
@@ -80,34 +110,55 @@ const PackageCollectionRequest = () => {
     } else {
       user = selectedUser;
     }
-    
-    if(!user)
-    {
+
+    if (!user) {
       toast.error("User not selected");
-      return
+      return;
     }
 
     const formData = new FormData();
-    if (!isRequest) {
-      formData.append("title", "Post POA");
-      formData.append("accountType", credentials.selected);
-      formData.append("expiry", formattedExpiry);
-      formData.append("signature", signature);
-      console.log(signature);
+    let body = {};
 
+    if (!isRequest) {
+      // user selected from dropdown
+      // formData.append("fuldmagtFormId", openedFuldmagt._id);
+      // formData.append("accountType", credentials.selected);
+      // formData.append("expiry", formattedExpiry);
+      // formData.append("fuldmagtGiverSignature", signature);
+      body = {
+        fuldmagtFormId: openedFuldmagt._id,
+        accountType: credentials.selected,
+        expiry: formattedExpiry,
+        fuldmagtGiverSignature: signature,
+        additionalFieldsData: additionalFormData,
+        agentId: isChooseMannually ? "" : selectedUser._id,
+      };
+
+      // custom user selected for send request
       if (isChooseMannually) {
-        formData.append("agentName", user.fullName);
-        formData.append("agentDOB", user.dateOfBirth);
-        formData.append("agentEmail", user.email);
-        formData.append("agentCountryCode", user.countryCode);
-        formData.append("agentPhoneNumber", user.phoneNumber);
+        body = {
+          ...body,
+          agentName: user.fullName,
+          agentDOB: user.dateOfBirth,
+          agentEmail: user.email,
+          agentCountryCode: user.countryCode,
+          agentPhoneNumber: user.phoneNumber,
+        };
       } else {
         formData.append("agentId", user._id || "");
       }
     } else {
-      formData.append("title", "Post POA");
-      formData.append("accountType", "user");
-      formData.append("expiry", formattedExpiry);
+      // formData.append("fuldmagtFormId", openedFuldmagt._id);
+      // formData.append("accountType", "user");
+      // formData.append("expiry", formattedExpiry);
+      // formData.append("fuldmagtGiverId", "")
+      body = {
+        fuldmagtFormId: openedFuldmagt._id,
+        accountType: credentials.selected,
+        expiry: formattedExpiry,
+        fuldmagtGiverId: selectedUser._id,
+        additionalFieldsData: additionalFormData,
+      };
 
       if (isChooseMannually) {
         formData.append("fuldmagtGiverName", user.fullName);
@@ -115,27 +166,39 @@ const PackageCollectionRequest = () => {
         formData.append("fuldmagtGiverEmail", user.email);
         formData.append("fuldmagtGiverPhoneNumber", user.phoneNumber);
         formData.append("fuldmagtGiverCountryCode", user.countryCode);
+        body = {
+          ...body,
+          fuldmagtGiverName: user.fullName,
+          fuldmagtGiverDOB: user.dateOfBirth,
+          fuldmagtGiverEmail: user.email,
+          fuldmagtGiverPhoneNumber: user.countryCode,
+          fuldmagtGiverCountryCode: user.phoneNumber,
+        };
       } else {
         formData.append("fuldmagtGiverId", user._id || "");
       }
     }
-
+    formData.append("additionalFieldsData", JSON.stringify(additionalFormData));
     try {
-
       let response = null;
-      if(!isRequest){
-        response = await createFuldmagt(credentials.authToken, formData)
+      if (!isRequest) {
+        response = await createFuldmagt(credentials.authToken, body);
+      } else {
+        response = await requestFuldmagt(credentials.authToken, body);
       }
-      else{
-        response = await requestFuldmagt(credentials.authToken, formData)
-      }
-      console.log(response);
       toast.success(response.data.message);
-      navigate ("/home")
+      navigate("/home");
     } catch (error) {
       console.error("Error saving signature:", error);
     }
   };
+
+  const handlePayment = () => {
+    setPaymentPopup(false)
+    // after payment success
+
+    setIsSignatureOpen(true)
+  }
 
   return (
     <div className="flex flex-col space-y-4 w-full">
@@ -143,7 +206,7 @@ const PackageCollectionRequest = () => {
         isOpen={isSignatureOpen}
         onClose={() => setIsSignatureOpen(false)}
         onSave={handleSignatureSave}
-        selectedUser={selectedUser}
+        selectedUser={credentials}
       />
       <div className="text-lg font-bold">e-fuldmagt for package Collection</div>
       <div className="flex items-center justify-center space-x-4 rounded-full bg-[#246C89] p-1 w-max mx-auto">
@@ -187,6 +250,7 @@ const PackageCollectionRequest = () => {
         )}
       </div>
       <div className="text-lg font-semibold">When should it expire?</div>
+
       <div className="flex flex-col md:flex-row items-center justify-center space-y-2 md:space-y-0 md:space-x-12 rounded-full p-1 w-max mx-auto">
         <button
           className={`w-[250px] h-[50px] ${
@@ -226,12 +290,161 @@ const PackageCollectionRequest = () => {
           ></input>
         </div>
       )}
+      <div className="w-full flex justify-center">
+        {openedFuldmagt && (
+          <div className="w-full lg:w-[50%] md:w-[75%] rounded-md shadow-lg p-4 space-y-3 border border-black border-opacity-15 mb-5">
+            <p className="text-2xl font-bold">{openedFuldmagt.title}</p>
+            {openedFuldmagt.additionalFields.map((field, index) => (
+              <>
+                <p className="text-lg font-bold">{field}</p>
+                {openedFuldmagt.additionalFieldsType[index] === "date" ? (
+                  <>
+                    <input
+                      type="date"
+                      name="date"
+                      id="date"
+                      className="w-full"
+                      onChange={(e) => {
+                        const updatedFormData = [...additionalFormData];
+                        updatedFormData[index] = new Date(
+                          e.target.value
+                        ).toISOString();
+                        setAdditionalFormData(updatedFormData);
+                      }}
+                    />
+                  </>
+                ) : (
+                  <>
+                    {openedFuldmagt.additionalFieldsType[index] ===
+                    "radioButtons" ? (
+                      <div className="flex w-full justify-between">
+                        {openedFuldmagt.additionalFieldsObject[
+                          index
+                        ].options.map((obj) => (
+                          <div className="space-x-3">
+                            <input
+                              type="radio"
+                              name={
+                                openedFuldmagt.additionalFieldsObject[index]
+                                  .heading
+                              }
+                              value={obj}
+                              onChange={(e) => {
+                                const updatedFormData = [...additionalFormData];
+                                updatedFormData[index] = e.target.value;
+                                setAdditionalFormData(updatedFormData);
+                              }}
+                            />
+                            <label>{obj}</label>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <>
+                        {openedFuldmagt.additionalFieldsType[index] ===
+                        "checkBoxes" ? (
+                          <>
+                            <div className="flex w-full justify-between">
+                              {openedFuldmagt.additionalFieldsObject[
+                                index
+                              ].options.map((obj, optionIndex) => (
+                                <div className="space-x-3" key={optionIndex}>
+                                  <input
+                                    type="checkbox"
+                                    value={obj}
+                                    onChange={(e) => {
+                                      const updatedFormData = [
+                                        ...additionalFormData,
+                                      ];
+                                      if (e.target.checked) {
+                                        updatedFormData[index] = [
+                                          ...(updatedFormData[index] || []),
+                                          e.target.value,
+                                        ];
+                                      } else {
+                                        updatedFormData[index] =
+                                          updatedFormData[index].filter(
+                                            (item) => item !== e.target.value
+                                          );
+                                      }
+                                      setAdditionalFormData(updatedFormData);
+                                    }}
+                                  />
+                                  <label>{obj}</label>
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            {openedFuldmagt.additionalFieldsType[index] ===
+                            "textArea" ? (
+                              <>
+                                <textarea
+                                  className="resize-none w-full"
+                                  rows={5}
+                                  name=""
+                                  id=""
+                                  placeholder={
+                                    openedFuldmagt.additionalFieldsObject[index]
+                                      .placeholder
+                                      ? openedFuldmagt.additionalFieldsObject[
+                                          index
+                                        ].placeholder
+                                      : ""
+                                  }
+                                  onChange={(e) => {
+                                    const updatedFormData = [
+                                      ...additionalFormData,
+                                    ];
+                                    updatedFormData[index] = e.target.value;
+                                    setAdditionalFormData(updatedFormData);
+                                  }}
+                                ></textarea>
+                              </>
+                            ) : (
+                              <>
+                                <input
+                                  className="w-full"
+                                  type="text"
+                                  name=""
+                                  id=""
+                                  placeholder={
+                                    openedFuldmagt.additionalFieldsObject[index]
+                                      .placeholder
+                                      ? openedFuldmagt.additionalFieldsObject[
+                                          index
+                                        ].placeholder
+                                      : ""
+                                  }
+                                  value={additionalFormData[index] || ""}
+                                  onChange={(e) => {
+                                    const updatedFormData = [
+                                      ...additionalFormData,
+                                    ];
+                                    updatedFormData[index] = e.target.value;
+                                    setAdditionalFormData(updatedFormData);
+                                  }}
+                                />
+                              </>
+                            )}
+                          </>
+                        )}
+                      </>
+                    )}
+                  </>
+                )}
+              </>
+            ))}
+          </div>
+        )}
+      </div>
       <div className="text-lg  font-semibold">
         Who will pickup the package for you?
       </div>
-      <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 items-center w-full justify-around rounded-full p-1">
+      <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 items-center w-full justify-around rounded-full p-1 outline-none">
         <UserSearchBar
-          className="w-full p-3"
+          className="w-full p-3 outline-none"
           setSelectedUser={handleSelectUser}
         />
         <div className="flex md:flex-col items-center w-full md:w-1/2">
@@ -334,52 +547,77 @@ const PackageCollectionRequest = () => {
             >
               Send request
             </button>
-          ) : (
-              (credentials.company)?
-              <button
-                type="button"
-                className={`w-full md:w-[335px] h-[86px] rounded-lg outline outline-1 outline-gray-300`}
-                onClick={() => setIsSignatureOpen(true)}
-              >
-                <div className="flex h-full">
-                {credentials.selected == "user"?
-                    <div className="w-[107px]">
-                      <div className="flex flex-col justify-center items-center h-[57px] w-full bg-primary bg-opacity-20">
-                        <img src={credentials.user.image} className="w-[27px] h-[27px] rounded-full object-cover"></img>
-                        <p className="text-xs">{credentials.user.name.firstName + " " + credentials.user.name.lastName}</p>
-                      </div>
-                      {credentials.company &&
-                        <div className="flex flex-col justify-center items-center w-full h-[29px]">
-                          <p className="text-[8px]">{credentials.company.companyName}</p>
-                        </div>
-                      }
-                      
-                    </div>:
-                    <div className="w-[107px]">
-                      <div className="flex flex-col justify-center items-center w-full h-[29px]">
-                        <p className="text-[8px]">{credentials.user.name.firstName + " " + credentials.user.name.lastName}</p>
-                      </div>
-                      <div className="flex flex-col justify-center items-center h-[57px] w-full bg-primary bg-opacity-20">
-                        <img src={credentials.company.image} className="w-[27px] h-[27px] rounded-full object-cover"></img>
-                        <p className="text-xs">{credentials.company.companyName}</p>
-                      </div>
+          ) : credentials.company ? (
+            <button
+              type="button"
+              className={`w-full md:w-[335px] h-[86px] rounded-lg outline outline-1 outline-gray-300`}
+              onClick={() => {
+                setPaymentPopup(true);
+                setIsSignatureOpen(true);
+              }}
+            >
+              <div className="flex h-full">
+                {credentials.selected == "user" ? (
+                  <div className="w-[107px]">
+                    <div className="flex flex-col justify-center items-center h-[57px] w-full bg-primary bg-opacity-20">
+                      <img
+                        src={credentials.user.image}
+                        className="w-[27px] h-[27px] rounded-full object-cover"
+                      ></img>
+                      <p className="text-xs">
+                        {credentials.user.name.firstName +
+                          " " +
+                          credentials.user.name.lastName}
+                      </p>
                     </div>
-                }
-                  <div className="flex w-full text-center h-full bg-primary rounded-r-lg items-center justify-center text-md font-bold text-white">
-                    Sign Now
+                    {credentials.company && (
+                      <div className="flex flex-col justify-center items-center w-full h-[29px]">
+                        <p className="text-[8px]">
+                          {credentials.company.companyName}
+                        </p>
+                      </div>
+                    )}
                   </div>
+                ) : (
+                  <div className="w-[107px]">
+                    <div className="flex flex-col justify-center items-center w-full h-[29px]">
+                      <p className="text-[8px]">
+                        {credentials.user.name.firstName +
+                          " " +
+                          credentials.user.name.lastName}
+                      </p>
+                    </div>
+                    <div className="flex flex-col justify-center items-center h-[57px] w-full bg-primary bg-opacity-20">
+                      <img
+                        src={credentials.company.image}
+                        className="w-[27px] h-[27px] rounded-full object-cover"
+                      ></img>
+                      <p className="text-xs">
+                        {credentials.company.companyName}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                <div className="flex w-full text-center h-full bg-primary rounded-r-lg items-center justify-center text-md font-bold text-white">
+                  Sign Now
                 </div>
-              </button>:
-              <button
-                type="button"
-                className={`w-[250px] h-[50px] rounded-lg font-semibold text-white bg-primary`}
-                onClick={handleSignatureSave}
-              >
-                Sign Now
-              </button>
+              </div>
+            </button>
+          ) : (
+            <button
+              type="button"
+              className={`w-[250px] h-[50px] rounded-lg font-semibold text-white bg-primary`}
+              onClick={handleSignatureSave}
+            >
+              Sign Now
+            </button>
           )}
         </div>
       </form>
+      <Payment
+        isOpen={paymentPopupOpen}
+        onClose={() => handlePayment()}
+      />
     </div>
   );
 };

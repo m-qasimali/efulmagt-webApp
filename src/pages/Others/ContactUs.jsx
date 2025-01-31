@@ -12,7 +12,7 @@ export default function ContactUs(){
                 5000 Odense C
             </p>
             <button className="rounded-full p-2 border-primary border-solid border bg-primary bg-opacity-20">
-                Support@e-fuldmagt.dk
+                <a href="mailto:Support@e-fuldmagt.dk">Support@e-fuldmagt.dk</a>
             </button>
             <div className="text-base text-center">
             {t("We will be happy to help you out. Please send us an email and we will get back to you quickly.")}

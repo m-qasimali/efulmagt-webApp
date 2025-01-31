@@ -23,10 +23,13 @@ const Login = () => {
           selected: "user"
         }
       )
+      localStorage.setItem("userId", response.data.data.user._id);
       navigate('/home')
     }
     catch(err){
-      console.log(err);
+      if (err?.response?.data?.success === false){
+        toast.error(err?.response.data.message)
+      }
       toast.error(err.response.data.data.error || "Wrong email or password");
     }
   }

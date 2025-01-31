@@ -69,12 +69,12 @@ export default function DashboardDrawer({}){
           {
             credentials.selected == "user"?
             <img
-              src={credentials.user.image  || ""}
+              src={credentials?.user?.image  || ""}
               alt="User"
               className="w-10 h-10 rounded-full object-cover"
             />:
             <img
-              src={credentials.company.image  || ""}
+              src={credentials?.company?.image  || ""}
               alt="User"
               className="w-10 h-10 rounded-full object-cover"
             />
@@ -82,17 +82,17 @@ export default function DashboardDrawer({}){
           {
             credentials.selected == "user"?
             <div className="ml-4">
-              <h2 className="font-semibold">{credentials.user.name.firstName + " " + credentials.user.name.lastName}</h2>
-              <p className="text-sm text-gray-500">{credentials.user.email}</p>
+              <h2 className="font-semibold">{credentials?.user?.name?.firstName + " " + credentials?.user?.name?.lastName}</h2>
+              <p className="text-sm text-gray-500">{credentials?.user?.email}</p>
             </div>:
             <div className="ml-4">
-              <h2 className="font-semibold">{credentials.company.companyName}</h2>
-              <p className="text-sm text-gray-500">{credentials.company.email}</p>
+              <h2 className="font-semibold">{credentials?.company?.companyName}</h2>
+              <p className="text-sm text-gray-500">{credentials?.company?.email}</p>
             </div>
           }
         </div>
         {
-          credentials.company && 
+          credentials?.company && 
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -131,11 +131,11 @@ export default function DashboardDrawer({}){
               setIsEmailVisible(false);
             }} className="flex w-full items-center my-2">
               <img
-                src={credentials.company.image}
+                src={credentials?.company?.image}
                 alt="Email 1"
                 className="w-6 h-6 rounded-full"
               />
-              <p className="ml-2 text-sm text-gray-500">{credentials.company.companyName}</p>
+              <p className="ml-2 text-sm text-gray-500">{credentials?.company?.companyName}</p>
             </button>:
             <button onClick={()=>{
               setCredentials((oldValues)=>{
@@ -149,7 +149,7 @@ export default function DashboardDrawer({}){
             }}
             className="flex w-full items-center my-2">
             <img
-              src={credentials.user.image}
+              src={credentials?.user?.image}
               alt="Email 1"
               className="w-6 h-6 rounded-full"
             />

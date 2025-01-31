@@ -54,7 +54,6 @@ export function timeDiff(targetDate, initialDate) {
 
   // Calculate the difference in milliseconds
   let diff = target - initial + 30000; // Adding 30 Secs to remove any delay
-  console.log(diff)
   if (diff < 0) {
     return "Immediately";
   }
@@ -77,7 +76,6 @@ export function timeDiff(targetDate, initialDate) {
 
   const hours = Math.floor(diff / oneHour);
   diff -= hours * oneHour;
-  console.log(diff)
   const minutes = Math.floor(diff / oneMinute);
 
   // Return the difference in the largest non-zero unit

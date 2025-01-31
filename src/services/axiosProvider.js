@@ -7,7 +7,7 @@ function getAxiosInstance(token){
         // withCredentials: true,
         // credentials: 'include'
       });
-      console.log(SERVER_HOST);
+      //console.log(SERVER_HOST);
     
     instance.defaults.headers.common['Authorization'] = 'Bearer ' + token;
     

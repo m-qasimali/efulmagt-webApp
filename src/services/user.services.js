@@ -32,3 +32,10 @@ export async function updateProfileImage(token, formData){
 
     return response;
 }
+
+export async function getUser(id) {
+    let axiosInstance = getAxiosInstance();
+    let response = await axiosInstance.get(`/user/users/${id}`)
+    
+    return response;
+}

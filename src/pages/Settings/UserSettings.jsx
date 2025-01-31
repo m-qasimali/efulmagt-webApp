@@ -16,13 +16,15 @@ import { Link } from "react-router-dom";
 
 export default function UserSettings() {
   const [credentials, setCredentials] = useCredentials();
+  console.log(credentials);
+  
   const [emailEncryptedOtpToken, setEmailEncryptedOtpToken] = useState(null);
   const [phoneEncryptedOtpToken, setPhoneEncryptedOtpToken] = useState(null);
   useEffect(() => {
     setUser({
       firstName: credentials.user.name.firstName,
       lastName: credentials.user.name.lastName,
-      email: credentials.user.email,
+      email: credentials.user.email, 
       phoneNumber:
         credentials.user.phone.countryCode +
         "-" +
@@ -55,11 +57,13 @@ export default function UserSettings() {
         lastName: credentials.user.name.lastName,
       },
     });
+    console.log(response);
+    
 
     setCredentials((oldValue) => {
       return {
         ...oldValue,
-        user: response.data.data.updatedUser,
+        user: response.data.data.user,
       };
     });
   };
@@ -74,7 +78,7 @@ export default function UserSettings() {
     setCredentials((oldValue) => {
       return {
         ...oldValue,
-        user: response.data.data.updatedUser,
+        user: response.data.data.user,
       };
     });
   };
@@ -93,7 +97,7 @@ export default function UserSettings() {
     setCredentials((oldValue) => {
       return {
         ...oldValue,
-        user: response.data.data.updatedUser,
+        user: response.data.data.user,
       };
     });
   };
@@ -119,7 +123,7 @@ export default function UserSettings() {
     setCredentials((oldValue) => {
       return {
         ...oldValue,
-        user: response.data.data.updatedUser,
+        user: response.data.data.user,
       };
     });
   };

@@ -33,7 +33,7 @@ export default function AddCompany(){
             }
         }
         addCompany(credentials.authToken, reqBody).then((res)=>{
-            console.log(res);
+            // console.log(res);
             navigate("/home")
         }).catch((err)=>{
             toast.error(err.response.data.message|| "something went wrong while adding company");
@@ -43,7 +43,7 @@ export default function AddCompany(){
     const assignCompanyHandle=(e)=>{
         let companyId = company._id;
         assignCompany(credentials.authToken, companyId).then((res)=>{
-            console.log(res);
+            // console.log(res);
             navigate("/settings")
         }).catch((err)=>{
             console.log(err);

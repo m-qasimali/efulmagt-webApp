@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import SetNotificationsItem from "../../components/UIElements/notifications/SetNotificationsItem";
 import { useTranslation } from "react-i18next";
-import { getNotificationSettings, setActivityNotification } from "../../services/notification.services";
+import { getNotificationSettings, setActivityNotification, setReminderNotification, updateFeedbackNotification, updateSpecialOffersNotification, updateNewsNotification } from "../../services/notification.services";
 import { useCredentials } from "../../context/CrendentialsContext";
 import { toast } from "react-toastify";
 
@@ -33,50 +33,240 @@ export default function NotificationsSettings(){
 
       useEffect(()=>{
           getNotificationSettings(credentials.authToken).then((res)=>{
-            let notificationSetting = res.data.data.notificationSetting
-            setAccountNotification(notificationSetting.activityNotification);
+            let notificationSetting = res.data.data.notificationSettings
+            console.log(res.data.data);
+            
+            setAccountNotification(notificationSetting?.activityNotification);
+            setSpecialOfferNotification(notificationSetting?.specialOffers);
+            setNewsNotification(notificationSetting?.news);
+            setFeedbackNotification(notificationSetting?.feedback);
+            setRemainderNotification(notificationSetting?.reminder);
           })
       },[])
       
-      const handleSpecialOfferEmailChange = (value)=>{
-        setSpecialOfferNotification({...specialOfferNotfication, email:value})
-      }
-      const handleSpecialOfferPushNotificationChange = (value)=>{
-        setSpecialOfferNotification({...specialOfferNotfication, pushNotification:value})
-      }
-      const handleNewsEmailChange = (value)=>{
-        setNewsNotification({...newsNotfication, email:value})
-      }
-      const handleNewsPushNotificationChange = (value)=>{
-        setNewsNotification({...newsNotfication, pushNotification:value})
-      }
-      const handleFeedbackEmailChange = (value)=>{
-        setFeedbackNotification({...feedbackNotification, email:value})
-      }
-      const handleFeedbackPushNotificationChange = (value)=>{
-        setFeedbackNotification({...feedbackNotification, pushNotification:value})
-      }
-      const handleAccountEmailChange = (value)=>{
-        setActivityNotification(credentials.authToken, {...accountNotification, email:value}).then(
-          (res)=>{
+      // Special Offer Notification
+      const handleSpecialOfferEmailChange = (value) => {
+        const updateSpecialOfferNotifications = async () => {
+          try {
+            const res = await updateSpecialOffersNotification(credentials.authToken, {
+              email: value, 
+              pushNotification: specialOfferNotfication.pushNotification
+            });
+
+            // Update local state 
+            setSpecialOfferNotification(prev => ({
+              ...prev,
+              email: value
+            }));
+            
             toast.success(res.data.message);
-            setAccountNotification({...accountNotification, email:value})
+            console.log(res);
+          } catch (error) {
+            console.error("Failed to update special offers notification", error);
+            toast.error(t("Failed to update notification settings"));
           }
-        )
-      }
-      const handleAccountPushNotificationChange = (value)=>{
-        setActivityNotification(credentials.authToken, {...accountNotification, pushNotification:value}).then(
-          (res)=>{
+        };
+
+        updateSpecialOfferNotifications();
+      };
+
+      const handleSpecialOfferPushNotificationChange = (value) => {
+        const updateSpecialOfferNotifications = async () => {
+          try {
+            const res = await updateSpecialOffersNotification(credentials.authToken, {
+              email: specialOfferNotfication.email, 
+              pushNotification: value
+            });
+
+            // Update local state 
+            setSpecialOfferNotification(prev => ({
+              ...prev,
+              pushNotification: value
+            }));
+            
             toast.success(res.data.message);
-            setAccountNotification({...accountNotification, pushNotification:value})
+            console.log(res);
+          } catch (error) {
+            console.error("Failed to update special offers push notification", error);
+            toast.error(t("Failed to update notification settings"));
           }
-        )
-      }
+        };
+
+        updateSpecialOfferNotifications();
+      };
+
+      // News Notification
+      const handleNewsEmailChange = (value) => {
+        const updateNewsNotifications = async () => {
+          try {
+            const res = await updateNewsNotification(credentials.authToken, {
+              email: value, 
+              pushNotification: newsNotfication.pushNotification
+            });
+
+            // Update local state 
+            setNewsNotification(prev => ({
+              ...prev,
+              email: value
+            }));
+            
+            toast.success(res.data.message);
+            console.log(res);
+          } catch (error) {
+            console.error("Failed to update news notification", error);
+            toast.error(t("Failed to update notification settings"));
+          }
+        };
+
+        updateNewsNotifications();
+      };
+
+      const handleNewsPushNotificationChange = (value) => {
+        const updateNewsNotifications = async () => {
+          try {
+            const res = await updateNewsNotification(credentials.authToken, {
+              email: newsNotfication.email, 
+              pushNotification: value
+            });
+
+            // Update local state 
+            setNewsNotification(prev => ({
+              ...prev,
+              pushNotification: value
+            }));
+            
+            toast.success(res.data.message);
+            console.log(res);
+          } catch (error) {
+            console.error("Failed to update news push notification", error);
+            toast.error(t("Failed to update notification settings"));
+          }
+        };
+
+        updateNewsNotifications();
+      };
+      
+      // Feedback Notification 
+      const handleFeedbackEmailChange = (value) => {
+        const updateFeedbackNotifications = async () => {
+          try {
+            const res = await updateFeedbackNotification(credentials.authToken, {
+              email: value, 
+              pushNotification: feedbackNotification.pushNotification
+            });
+
+            // Update local state 
+            setFeedbackNotification(prev => ({
+              ...prev,
+              email: value
+            }));
+            
+            toast.success(res.data.message);
+            console.log(res);
+          } catch (error) {
+            console.error("Failed to update feedback notification", error);
+            toast.error(t("Failed to update notification settings"));
+          }
+        };
+
+        updateFeedbackNotifications();
+      };
+
+      const handleFeedbackPushNotificationChange = (value) => {
+        const updateFeedbackNotifications = async () => {
+          try {
+            const res = await updateFeedbackNotification(credentials.authToken, {
+              email: feedbackNotification.email, 
+              pushNotification: value
+            });
+
+            // Update local state 
+            setFeedbackNotification(prev => ({
+              ...prev,
+              pushNotification: value
+            }));
+            
+            toast.success(res.data.message);
+            console.log(res);
+          } catch (error) {
+            console.error("Failed to update feedback push notification", error);
+            toast.error(t("Failed to update notification settings"));
+          }
+        };
+
+        updateFeedbackNotifications();
+      };
+
+      // Account Notification
+      const handleAccountEmailChange = (value) => {
+        // Ensure accountNotification is not undefined before spreading
+        const updatedAccountNotification = {
+          ...accountNotification,
+          email: value
+        };
+
+        const updateAccountrNotifications = async () => {
+          try {
+            // Use the updated notification object
+            const res = await setActivityNotification(credentials.authToken, {
+              email: value, 
+              pushNotification: updatedAccountNotification.pushNotification
+            });
+
+            // Update local state only after successful API call
+            setAccountNotification(updatedAccountNotification);
+            toast.success(res.data.message);
+          } catch (error) {
+            console.error("Failed to update account notification", error);
+            toast.error(t("Failed to update notification settings"));
+          }
+        };
+
+        // Call the async function
+        updateAccountrNotifications();
+      };
+      const handleAccountPushNotificationChange = (value) => {
+        const updateAccountNotifications = async () => {
+          try {
+            const updatedAccountNotification = {
+              ...accountNotification,
+              pushNotification: value
+            };
+
+            const res = await setActivityNotification(credentials.authToken, updatedAccountNotification);
+            
+            toast.success(res.data.message);
+            setAccountNotification(updatedAccountNotification);
+          } catch (error) {
+            console.error("Failed to update account push notification", error);
+            toast.error(t("Failed to update notification settings"));
+          }
+        };
+
+        updateAccountNotifications();
+      };
+
+      // Reminders Notification
       const handleRemainderEmailChange = (value)=>{
         setRemainderNotification({...remainderNotification, email:value})
+
+        const updateReminderNotifications = async ()=>{
+          await setReminderNotification(credentials.authToken, {email:value, pushNotification:remainderNotification.pushNotification})
+          .then((res)=>{
+            toast.success(res.data.message);
+          })
+        } 
+        updateReminderNotifications();
       }
       const handleRemainderPushNotificationChange = (value)=>{
         setRemainderNotification({...remainderNotification, pushNotification:value})
+        const updateReminderNotifications = async ()=>{
+          await setReminderNotification(credentials.authToken, {email:remainderNotification.email, pushNotification:value})
+          .then((res)=>{
+            toast.success(res.data.message);
+          })
+        } 
+        updateReminderNotifications();
       }
       return(
         <div className="h-full w-full flex-col justify-center">

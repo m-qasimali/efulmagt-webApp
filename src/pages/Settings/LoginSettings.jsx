@@ -91,7 +91,7 @@ export default function LoginSettings(){
             </div>
             {/* Login with Face ID */}
 
-            <div className="flex space-x-12 mt-6">
+            {/* <div className="flex space-x-12 mt-6">
                 <span className="text-md font-semibold">Login with Face ID</span>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -108,7 +108,7 @@ export default function LoginSettings(){
                       ></div>
                   </div>
                 </label>
-            </div>
+            </div> */}
 
             {/* Delete Account */}
             <div  className="mt-10">

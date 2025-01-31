@@ -68,7 +68,7 @@ export default function SettingsEmailInput({input, disabled=false, setInput, typ
                     <button 
                     onClick={()=>{
                         handleVerifyOTP().catch((err)=>{
-                            console.log(err);
+                            // console.log(err);
                             toast.error(err.response.data.message || err.message);
                             setInput(prevInput);
                         });
@@ -130,7 +130,7 @@ export default function SettingsEmailInput({input, disabled=false, setInput, typ
                                     <button 
                                     onClick={()=>{
                                         handleVerifyOTP().catch((err)=>{
-                                            console.log(err);
+                                            // console.log(err);
                                             toast.error(err.response.data.message || err.message);
                                             setInput(prevInput);
                                         });

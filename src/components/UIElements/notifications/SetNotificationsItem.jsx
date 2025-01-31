@@ -59,15 +59,15 @@ export default function SetNotificationItem({header, subHeadingText, text, notif
                 <input
                     type="checkbox"
                     className="sr-only"
-                    checked={notification.email}
+                    checked={notification?.email}
                     onChange={() => {
-                      handleEmailChange(!notification.email)
+                      handleEmailChange(!notification?.email)
                     }}
                 />
-                <div className={`relative w-10 h-6 bg-gray-200 rounded-full ${notification.email?"bg-primary":""}`}>
+                <div className={`relative w-10 h-6 bg-gray-200 rounded-full ${notification?.email?"bg-primary":""}`}>
                     <div
                     className={`absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                        notification.email ? 'transform translate-x-4' : ''
+                        notification?.email ? 'transform translate-x-4' : ''
                     }`}
                     ></div>
                 </div>
@@ -80,13 +80,13 @@ export default function SetNotificationItem({header, subHeadingText, text, notif
                   <input
                       type="checkbox"
                       className="sr-only"
-                      checked={notification.pushNotification}
-                      onChange={() => handlePushNotificationChange(!notification.pushNotification)}
+                      checked={notification?.pushNotification}
+                      onChange={() => handlePushNotificationChange(!notification?.pushNotification)}
                   />
-                  <div className={`relative w-10 h-6 bg-gray-200 rounded-full ${notification.pushNotification?"bg-primary":""}`}>
+                  <div className={`relative w-10 h-6 bg-gray-200 rounded-full ${notification?.pushNotification?"bg-primary":""}`}>
                       <div
                       className={`absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                          notification.pushNotification ? 'transform translate-x-4' : ''
+                          notification?.pushNotification ? 'transform translate-x-4' : ''
                       }`}
                       ></div>
                   </div>
@@ -123,15 +123,15 @@ export default function SetNotificationItem({header, subHeadingText, text, notif
                       <input
                           type="checkbox"
                           className="sr-only"
-                          checked={notification.email}
+                          checked={notification?.email}
                           onChange={() => {
-                            handleEmailChange(!notification.email)
+                            handleEmailChange(!notification?.email)
                           }}
                       />
-                      <div className={`relative w-10 h-6 bg-gray-200 rounded-full ${notification.email?"bg-primary":""}`}>
+                      <div className={`relative w-10 h-6 bg-gray-200 rounded-full ${notification?.email?"bg-primary":""}`}>
                           <div
                           className={`absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                              notification.email ? 'transform translate-x-4' : ''
+                              notification?.email ? 'transform translate-x-4' : ''
                           }`}
                           ></div>
                       </div>
@@ -145,13 +145,13 @@ export default function SetNotificationItem({header, subHeadingText, text, notif
                         <input
                             type="checkbox"
                             className="sr-only"
-                            checked={notification.pushNotification}
-                            onChange={() => handlePushNotificationChange(!notification.pushNotification)}
+                            checked={notification?.pushNotification}
+                            onChange={() => handlePushNotificationChange(!notification?.pushNotification)}
                         />
-                        <div className={`relative w-10 h-6 bg-gray-200 rounded-full ${notification.pushNotification?"bg-primary":""}`}>
+                        <div className={`relative w-10 h-6 bg-gray-200 rounded-full ${notification?.pushNotification?"bg-primary":""}`}>
                             <div
                             className={`absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                                notification.pushNotification ? 'transform translate-x-4' : ''
+                                notification?.pushNotification ? 'transform translate-x-4' : ''
                             }`}
                             ></div>
                         </div>

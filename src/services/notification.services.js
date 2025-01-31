@@ -18,8 +18,34 @@ export async function getNotificationSettings(token){
     return response;
 }
 
-export async function setActivityNotification(token, {email, pushNotification}){
+export async function setActivityNotification(token, data){
     let axiosInstance = getAxiosInstance(token);
-    let response = await axiosInstance.put('/user/setActivityNotification',  {email, pushNotification});
+    console.log(data);
+    
+    let response = await axiosInstance.put('/user/setActivityNotification',  data);
+    return response;
+}
+
+export async function setReminderNotification(token, data){
+    let axiosInstance = getAxiosInstance(token);
+    let response = await axiosInstance.put('/user/setReminderNotification',  data);
+    return response;
+}
+
+export async function updateFeedbackNotification(token, data){
+    let axiosInstance = getAxiosInstance(token);
+    let response = await axiosInstance.put('/user/setFeedbackNotification',  data);
+    return response;
+}
+
+export async function updateSpecialOffersNotification(token, data){
+    let axiosInstance = getAxiosInstance(token);
+    let response = await axiosInstance.put('/user/setSpecialOfferNotification', data);
+    return response;
+}
+
+export async function updateNewsNotification(token, data){
+    let axiosInstance = getAxiosInstance(token);
+    let response = await axiosInstance.put('/user/setNewsNotification', data);
     return response;
 }

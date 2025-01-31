@@ -11,9 +11,9 @@ export default function PhoneInput({
 }) {
   const { countries } = useCountries();
   const [countryCode, setCountryCode] = useState("+235");
-  useEffect(() => {
-    console.log(countries);
-  }, [countries]);
+  // useEffect(() => {
+  //   console.log(countries);
+  // }, [countries]);
   const handleCountryCodeChange = (e) => {
     const selectedCode = e.target.value;
     setCountryCode(selectedCode);

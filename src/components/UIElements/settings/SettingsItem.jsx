@@ -2,7 +2,9 @@ import { Link } from "react-router-dom";
 
 export default function SettingsItem({SvgItem, text, navigateTo, className}){
     return(
-        <Link to={navigateTo} className={"flex justify-between hover:bg-primary hover:bg-opacity-5 items-center h-[64px]  w-full border border-solid rounded-md shadow px-4 " + className}>
+        <Link to={navigateTo} 
+        target={text === "Term of Service" || text === "Privacy Policy" ? "_blank" : ""}
+        className={"flex justify-between hover:bg-primary hover:bg-opacity-5 items-center h-[64px]  w-full border border-solid rounded-md shadow px-4 " + className}>
                 <div className="flex items-center space-x-3">
                     
                     <div className="flex justify-center items-center h-[40px] w-[40px] bg-primary bg-opacity-35 rounded-full">

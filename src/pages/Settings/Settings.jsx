@@ -147,13 +147,13 @@ export default function Settings() {
         <SettingsItem
           SvgItem={ServicesSVG}
           text={t("Term of Service")}
-          navigateTo={"/services"}
           className={"mb-2"}
+          navigateTo={"https://www.e-fuldmagt.dk/en/privatliv/handelsbetingelser"}
         />
         <SettingsItem
           SvgItem={PolicySVG}
           text={t("Privacy Policy")}
-          navigateTo={"/privacy"}
+          navigateTo={"https://www.e-fuldmagt.dk/en/privatliv/handelsbetingelser"}
           className={"mb-2"}
         />
       </div>

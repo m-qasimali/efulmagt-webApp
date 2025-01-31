@@ -1,19 +1,42 @@
 import React, { useRef, useState } from "react";
 import SignatureCanvas from "react-signature-canvas";
+import { getUploadUrl } from "../../../services/fuldmagt.services";
+import axios from "axios";
 
-const SignaturePopup = ({ isOpen, onClose, onSave }) => {
+const SignaturePopup = ({ isOpen, onClose, onSave, selectedUser }) => {
   const sigCanvas = useRef({});
   const [showSignatureOptions, setShowSignatureOptions] = useState(false);
-  const [selectedSignature, setSelectedSignature] = useState(null);
+  const [selectedSignature, setSelectedSignature] = useState();
 
   const clear = () => sigCanvas.current.clear();
 
-  const save = () => {
-    
-    const trimmedData = sigCanvas.current
-      .getTrimmedCanvas()
-      .toDataURL("image/png");
-    onSave(trimmedData);
+  const save = async () => {
+    const trimmedCanvas = sigCanvas.current.getTrimmedCanvas();
+
+    // Convert the canvas to a Blob in PNG format
+    trimmedCanvas.toBlob(async (blob) => {
+      if (!blob) {
+        console.error("Failed to convert canvas to Blob");
+        return;
+      }
+
+      const res = await getUploadUrl(selectedUser.authToken);
+      const uploadUrl = res.data.data.url;
+
+      try {
+        const uploadImg = await axios.put(uploadUrl, blob, {
+          headers: {
+            "Content-Type": "image/jpg",
+          },
+        });
+
+      } catch (error) {
+        console.error("Error uploading image:", error);
+      }
+      if (res.data.data.imageUrl) {
+        onSave(res.data.data.imageUrl);
+      }
+    }, "image/jpg");
   };
 
   if (!isOpen) return null;
@@ -104,20 +127,36 @@ const SignaturePopup = ({ isOpen, onClose, onSave }) => {
 
             <div className="space-y-4">
               <div className="p-4 flex items-center justify-between">
-                <div className="flex flex-col">
-                  <p className="text-sm text-gray-500">User [If Any]</p>
-                  <img
-                    src="/images/sign.png"
-                    alt={`Signature`}
-                    className="w-11/12"
-                  />
-                </div>
-                <div className="flex justify-between space-x-4">
-                  <input type="radio" name="signature" value={`Signature`} />
-                  <label className=" text-blue-500 cursor-pointer">
-                    Change
-                  </label>
-                </div>
+                {selectedUser.user.signature ? (
+                  <>
+                    <div className="flex flex-col">
+                      <p className="text-sm text-gray-500">User [If Any]</p>
+                      <img
+                        src={`${selectedUser.user.signature}`}
+                        alt={`Signature`}
+                        className="w-11/12"
+                      />
+                    </div>
+                    <div className="flex justify-between space-x-4">
+                      <input
+                        type="radio"
+                        name="signature"
+                        value={selectedSignature}
+                        onChange={() =>
+                          setSelectedSignature(selectedUser.user.signature)
+                        }
+                        checked={
+                          selectedSignature === selectedUser.user.signature
+                        }
+                      />
+                      <label className="text-blue-500 cursor-pointer">
+                        Change
+                      </label>
+                    </div>
+                  </>
+                ) : (
+                  <p>No Signature Found!</p>
+                )}
               </div>
             </div>
 
