@@ -18,6 +18,8 @@ import { useTranslation } from "react-i18next";
 import SignaturePopup from "../../components/UIElements/popups/SignaturePopup";
 import { toast } from "react-toastify";
 import { useFetchData } from "../../context/FetchDataContext";
+import Payment from "../../components/UIElements/popups/Payment";
+import {handlePayment, verifyPayment} from "../../services/payment.service";
 
 export default function Home() {
   const { t } = useTranslation();
@@ -135,7 +137,9 @@ export default function Home() {
       { signature }
     )
       .then((res) => {
-        console.log(res);
+        localStorage.removeItem("orderId");
+        localStorage.removeItem("paymentUrl")
+        toast.success("Fuldmagt Approved!")
       })
       .catch((err) => {
         console.log(err);
@@ -172,7 +176,14 @@ export default function Home() {
       : `/e-fuldmagts/${item._id}`, { state: { item } })
   }
 
-  const EFuldmagtItem = ({ item }) => (
+  const EFuldmagtItem = ({ item }) => {
+    const [paymentPopup, setPaymentPopup] = useState(false);
+    
+    const handlePayments = async (amount, currency) => {
+      const success = handlePayment(amount, currency)
+      if (success) setSignatureOpen(true);
+    }
+    return (
     <div className="flex items-center justify-between px-4 border mb-1 rounded-lg cursor-pointer h-[90px]">
       <div
         onClick={()=>navigateToFuldmagt(item)}
@@ -231,15 +242,18 @@ export default function Home() {
                     ? "bg-primary"
                     : item.requestStatus === "pending"
                     ? "bg-gray-400"
-                    : item.requestStatus === "approved"
+                    : item.requestStatus === "approved" && !item.revoked
                     ? "bg-green-400"
-                    : "bg-red-400"
+                    : "bg-gray-400"
                 }`}
               >
                 {item?.acknowledged === true
                   ? "Recieved"
+                  : item.revoked 
+                  ? "Revoked"
                   : item.requestStatus[0].toUpperCase() +
-                    item.requestStatus.slice(1).toLowerCase()}
+                  item.requestStatus.slice(1).toLowerCase()
+                }
               </div>
             ) : (
               <div className="space-x-1 flex">
@@ -257,7 +271,19 @@ export default function Home() {
                   onClick={async (e) => {
                     e.stopPropagation();
                     setSelectedFuldmagt(item);
-                    setSignatureOpen(true);
+                    let orderId = localStorage.getItem("orderId");
+                    if (!orderId){
+                      handlePayment(item.price, "DKK");
+                      return;
+                    }
+                    let paymentStatus = await verifyPayment(orderId);
+                    if (paymentStatus.status == "Paid"){
+                      setSignatureOpen(true);
+                    }
+                    else if(paymentStatus.status == "Pending"){
+                      window.open(localStorage.getItem("paymentUrl"), "_blank");
+                    }                   
+                    // setPaymentPopup(true);
                   }}
                 >
                   Approve
@@ -267,8 +293,12 @@ export default function Home() {
           </>
         )}
       </div>
+      <Payment
+        isOpen={paymentPopup}
+        onClose={handlePayments}
+      />
     </div>
-  );
+  )};
 
   return (
     <div className="flex flex-col w-full h-full">
@@ -362,7 +392,7 @@ export default function Home() {
             to="/notifications"
             className="flex items-center justify-center"
           >
-            <h2 className="text-center text-xl font-semibold p-4 text-lg">
+            <h2 className="text-center text-xl font-semibold p-4">
               {"Notifications"}
             </h2>
             <BadgeNumber

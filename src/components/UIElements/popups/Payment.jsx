@@ -2,18 +2,29 @@ import { useState } from "react";
 import { FaCheckCircle } from "react-icons/fa";
 import { FaCcMastercard } from "react-icons/fa";
 import { toast } from "react-toastify";
+import Select from 'react-select';
+import countries from 'world-countries';
 
 const tiers = [
-  { id: 1, name: "Tier 1", price: "9KR" },
-  { id: 3, name: "Tier 3", price: "17KR" },
-  { id: 5, name: "Tier 5", price: "25KR" },
-  { id: 7, name: "Tier 7", price: "35KR" },
-  { id: 10, name: "Tier 10", price: "45KR" },
-  { id: 12, name: "Tier 12", price: "59KR" },
-  { id: 14, name: "Tier 14", price: "69KR" },
+  { id: 1, name: "Tier 1", price: 9, currency: "DKK" },
+  { id: 3, name: "Tier 3", price: 17, currency: "DKK" },
+  { id: 5, name: "Tier 5", price: 25, currency: "DKK" },
+  { id: 7, name: "Tier 7", price: 35, currency: "DKK" },
+  { id: 10, name: "Tier 10", price: 45, currency: "DKK" },
+  { id: 12, name: "Tier 12", price: 59, currency: "DKK" },
+  { id: 14, name: "Tier 14", price: 69, currency: "DKK" },
 ];
 
-const Payment = ({ isOpen, onClose, onPaymentSuccess }) => {
+const countryOptions = countries.map((country) => ({
+  value: country.cca2,  // Country code
+  label: country.name.common  // Country name
+}));
+
+const Payment = ({ 
+  isOpen, 
+  onClose, 
+  onCancel
+}) => {
   const [stage, setStage] = useState(1);
   const [selectedTier, setSelectedTier] = useState(tiers[0]);
   const [formData, setFormData] = useState({
@@ -21,7 +32,7 @@ const Payment = ({ isOpen, onClose, onPaymentSuccess }) => {
     expiryDate: "",
     cvv: "",
     zipCode: "",
-    country: "Denmark",
+    country: { value: "DK", label: "Denmark" } // Default country
   });
 
   const handleInputChange = (e) => {
@@ -54,6 +65,13 @@ const Payment = ({ isOpen, onClose, onPaymentSuccess }) => {
     }));
   };
 
+  const handleCountryChange = (selectedOption) => {
+    setFormData(prev => ({
+      ...prev,
+      country: selectedOption
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     
@@ -80,28 +98,22 @@ const Payment = ({ isOpen, onClose, onPaymentSuccess }) => {
       return;
     }
 
-    // Proceed with payment
-    const paymentInfo = {
-      tier: selectedTier,
-      cardDetails: {
-        ...formData,
-        cardNumber: formData.cardNumber.slice(-4)
-      }
-    };
+    onClose(
+      selectedTier.price,
+      selectedTier.currency
+    );
+  };
 
-    if (onPaymentSuccess) {
-      onPaymentSuccess(paymentInfo);
-    }
-
-    toast.success(`Payment for ${selectedTier.name} successful!`);
-    onClose();
+  const handleClose = () => {
+    // Pass the selected tier price and currency when closing
+    onCancel();
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
-      <div className="bg-white w-[450px] rounded-2xl shadow-lg p-6 max-h-[658px]">
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-[100]">
+      <div className="bg-white w-[450px] rounded-2xl shadow-lg p-6 max-h-[658px] relative z-[101]">
         {/* Stage 1: Choose Tier */}
         {stage === 1 && (
           <>
@@ -130,13 +142,15 @@ const Payment = ({ isOpen, onClose, onPaymentSuccess }) => {
                     )}
                     {tier.name}
                   </span>
-                  <span className="flex items-center">{tier.price}</span>
+                  <span className="flex items-center">
+                    {tier.price} {tier.currency}
+                  </span>
                 </button>
               ))}
             </div>
             <div className="flex justify-between mt-4 gap-2">
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className="py-3 px-6 border border-gray-400 rounded-lg w-1/3"
               >
                 Cancel
@@ -237,12 +251,35 @@ const Payment = ({ isOpen, onClose, onPaymentSuccess }) => {
                   <span className="text-gray-700 font-medium text-sm">Country</span>
                 </div>
                 <div className="flex-grow">
-                  <input
-                    type="text"
-                    name="country"
+                  <Select
                     value={formData.country}
-                    readOnly
-                    className="w-full h-full p-4 bg-white border-none outline-none"
+                    onChange={handleCountryChange}
+                    options={countryOptions}
+                    styles={{
+                      control: (provided) => ({
+                        ...provided,
+                        height: '64px',
+                        border: 'none',
+                        boxShadow: 'none',
+                        borderRadius: 0,
+                      }),
+                      valueContainer: (provided) => ({
+                        ...provided,
+                        padding: '0 16px',
+                      }),
+                      input: (provided) => ({
+                        ...provided,
+                        margin: '0px',
+                      }),
+                      singleValue: (provided) => ({
+                        ...provided,
+                        color: 'black',
+                      }),
+                      menu: (provided) => ({
+                        ...provided,
+                        zIndex: 9999,
+                      }),
+                    }}
                   />
                 </div>
               </div>
@@ -259,7 +296,7 @@ const Payment = ({ isOpen, onClose, onPaymentSuccess }) => {
                 type="submit"
                 className="py-3 px-6 bg-primary text-white rounded-lg w-2/3"
               >
-                Pay {selectedTier.price}
+                Pay {selectedTier.price} {selectedTier.currency}
               </button>
             </div>
           </form>

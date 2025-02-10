@@ -15,6 +15,7 @@ import {
   getFuldmagtSpecified,
 } from "../../services/fuldmagt.services.js";
 import Payment from "../../components/UIElements/popups/Payment.jsx";
+import { handlePayment, verifyPayment } from "../../services/payment.service.js";
 
 const PackageCollectionRequest = () => {
   const navigate = useNavigate();
@@ -41,6 +42,7 @@ const PackageCollectionRequest = () => {
   const [countryCode, setCountryCode] = useState("");
   const location = useLocation();
   const [paymentPopupOpen, setPaymentPopup] = useState(false);
+  const [fuldmagtPrice, setFuldmagtPrice] = useState(null);
 
   const getASpecificFuldmagt = async () => {
     const res = await getFuldmagtSpecified(
@@ -53,6 +55,7 @@ const PackageCollectionRequest = () => {
   };
   useEffect(() => {
     if (location.state && location.state.fuldmagt) {
+      setFuldmagtPrice(location.state.fuldmagt.price);
       setOpenedFulgmagt(location.state.fuldmagt);
     } else if (location.state.state.item) {
       getASpecificFuldmagt();
@@ -186,6 +189,8 @@ const PackageCollectionRequest = () => {
       } else {
         response = await requestFuldmagt(credentials.authToken, body);
       }
+      localStorage.removeItem("paymentUrl");
+      localStorage.removeItem("orderId")
       toast.success(response.data.message);
       navigate("/home");
     } catch (error) {
@@ -193,11 +198,37 @@ const PackageCollectionRequest = () => {
     }
   };
 
-  const handlePayment = () => {
-    setPaymentPopup(false)
-    // after payment success
+  const handlePayments = async (amount, currency) => {
+    setPaymentPopup(false);
 
-    setIsSignatureOpen(true)
+    // const orderId = Math.floor(Math.random() * (9999999 - 1000000 + 1)) + 1000000;
+
+    // try {
+    //   const response = await axios.post("http://localhost:3000/create-quickpay-link", {
+    //     orderId,
+    //     amount: amount * 100,
+    //     currency
+    //   });
+
+    //   // Open the payment URL in a new tab
+    //   if (response.data.paymentUrl) {
+    //     window.open(response.data.paymentUrl, '_blank');
+
+    //     setIsSignatureOpen(true)
+    //   }
+    // } catch (error) {
+    //   console.error("Payment link creation failed:", error);
+    //   toast.error("Failed to create payment link");
+    // }
+    let success, paymentStaus;
+    if (!orderId){
+      success = handlePayment(fuldmagtPrice, currency);
+    }
+    
+  };
+
+  const onCancel = () => {
+    setPaymentPopup(false);
   }
 
   return (
@@ -551,9 +582,28 @@ const PackageCollectionRequest = () => {
             <button
               type="button"
               className={`w-full md:w-[335px] h-[86px] rounded-lg outline outline-1 outline-gray-300`}
-              onClick={() => {
-                setPaymentPopup(true);
-                setIsSignatureOpen(true);
+              onClick={async() => {
+                const paymentUrl = localStorage.getItem("paymentUrl");
+                const orderId = localStorage.getItem("orderId");
+
+                if (paymentUrl) {
+                  const paid = await verifyPayment(orderId);
+                  if (paid.status === "Paid"){
+                    setIsSignatureOpen(true)
+                  }
+                  else if (paid.status == "Pending"){
+                    window.open(localStorage.getItem("paymentUrl"), "_blank")
+                  }
+                  // if (paid?.status != "Paid"){
+                  //   window.open(paymentUrl, '_blank');
+                  // }
+                  // else {
+                  //   setIsSignatureOpen(true);
+                  // }
+                }
+                else {
+                  setPaymentPopup(true);
+                }
               }}
             >
               <div className="flex h-full">
@@ -614,10 +664,7 @@ const PackageCollectionRequest = () => {
           )}
         </div>
       </form>
-      <Payment
-        isOpen={paymentPopupOpen}
-        onClose={() => handlePayment()}
-      />
+      <Payment isOpen={paymentPopupOpen} onClose={handlePayments} onCancel={onCancel}/>
     </div>
   );
 };

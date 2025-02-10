@@ -111,7 +111,7 @@ const ProfileDropdown = () => {
             </button>
             }
             <div
-              onClick={()=>{setCredentials(null); localStorage.removeItem("userId"); navigate("/signin")}}
+              onClick={()=>{setCredentials(null); localStorage.removeItem("userId"); localStorage.removeItem("token"); navigate("/signin")}}
               className="block py-2 text-sm text-gray-700 hover:bg-gray-100 hover:cursor-pointer"
               role="menuitem"
             >

@@ -34,6 +34,7 @@ import { messaging } from "./firebaseConfig";
 import { addNotifcationId } from "./services/notification.services";
 import { toast } from "react-toastify";
 import { useFetchData } from "./context/FetchDataContext";
+import { getUser } from "./services/user.services";
 
 const { SERVER_HOST } = import.meta.env;
 
@@ -53,6 +54,10 @@ export default function App() {
       addNotifcationId(credentials.authToken, {notificationId: token}).then((res)=>{
         // console.log(res.data.message);
       }).catch((err)=>{
+        console.log(err);
+        if (err.response.data.message == "Invalid Token"){
+          
+        }
         console.log(err.response.data.message);
       })
     } else if (permission === "denied") {
@@ -61,6 +66,28 @@ export default function App() {
     }
   }
 
+  const userId = localStorage.getItem("userId");
+
+  useEffect(() => {
+    const getUserData = async () => {
+      try {
+        const res = await getUser(userId);
+        console.log(res);
+        setCredentials({
+          ...res.data.data,
+          authToken: localStorage.getItem("token"),
+          selected: "user"
+        });
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        setCredentials(null);
+      }
+    };
+    
+    if (userId) {
+      getUserData();
+    }
+  }, []); 
 
   const verifyCredentials = useCallback(() => {
     // console.log(credentials);

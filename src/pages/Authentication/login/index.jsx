@@ -17,13 +17,16 @@ const Login = () => {
     try{
       let response = await login({credentials, pin: passcode.join("")});
       let resCredentials = await response.data.data;
+      console.log(response);
       setContextCredentials(
         {
           ...resCredentials,
           selected: "user"
         }
       )
+      localStorage.setItem("token", response.data.data.authToken)
       localStorage.setItem("userId", response.data.data.user._id);
+      console.log(credentials);
       navigate('/home')
     }
     catch(err){

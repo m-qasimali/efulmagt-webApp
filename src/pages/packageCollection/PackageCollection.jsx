@@ -110,7 +110,7 @@ const RevokeConfirmationModal = () => {
               <button className="mt-6 w-full px-4 py-2 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100">
                 No
               </button>
-              <button className="bg-primary w-full mt-6 px-4 py-2 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100">
+              <button className="bg-primary w-full mt-6 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100">
                 Yes
               </button>
             </div>

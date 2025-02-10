@@ -11,16 +11,19 @@ import {
 import { formatToDateOnly } from "../../utils/datefunctions";
 import { toast } from "react-toastify";
 import SignaturePopup from "../../components/UIElements/popups/SignaturePopup";
-
+import Payment from "../../components/UIElements/popups/Payment";
+import {handlePayment, verifyPayment} from "../../services/payment.service";
 
 const EFuldmagtRequest = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { state } = useLocation();
+  console.log(state);
   const [credentials, setCredentials] = useCredentials();
   const [fuldmagt, setFuldmagt] = useState({});
   const [isFuldmagtPending, setFuldmagtPending] = useState(false);
   const [isSignatureOpen, setSignatureOpen] = useState(false);
+  const [paymentPopupOpen, setPaymentPopup] = useState(false);
 
   const handleSignatureSave = (signature) => {
     const formData = new FormData();
@@ -35,6 +38,12 @@ const EFuldmagtRequest = () => {
         toast.error(err.response.data.message);
       });
   };
+
+  const handlePayments = async (amount, currency) => {
+    const success = handlePayment(amount, currency)
+    if (success) setSignatureOpen(true);
+    setPaymentPopup(false)
+  }
   // useEffect(()=>{
   //     getSpecificFuldmagtRequest(credentials.authToken, id).then((res)=>{
   //         let fuldmagtRequestData = res.data.data.fuldmagtRequest;
@@ -58,13 +67,13 @@ const EFuldmagtRequest = () => {
 
   const rejectFuldmagtRequest = async () => {
     await rejectFuldmagt(credentials.authToken, fuldmagt._id)
-    .then((response)=>{
-      toast.success(response.data.message);
-      navigate("/home");
-    })
-    .catch((err)=>{
-      toast.error("Error Rejecting Request!");
-    })
+      .then((response) => {
+        toast.success(response.data.message);
+        navigate("/home");
+      })
+      .catch((err) => {
+        toast.error("Error Rejecting Request!");
+      });
   };
 
   const approveFuldmagt = async (signature) => {
@@ -72,9 +81,10 @@ const EFuldmagtRequest = () => {
       signature,
     })
       .then((res) => {
-        console.log(res);
         setFuldmagtPending(false);
-        setFuldmagt(res.data.data.fuldmagt)
+        setFuldmagt(res.data.data.fuldmagt);
+        localStorage.removeItem("orderId");
+        localStorage.removeItem("paymentUrl");
       })
       .catch((err) => {
         console.log(err);
@@ -132,7 +142,6 @@ const EFuldmagtRequest = () => {
   };
 
   console.log(credentials, fuldmagt);
-  
 
   const data = {
     expiryDate: new Date("8-24-2024"),
@@ -148,29 +157,46 @@ const EFuldmagtRequest = () => {
   };
   return (
     <div className="flex flex-col space-y-4 w-full justify-center items-center">
-      {isFuldmagtPending && fuldmagt.agentName !== credentials.user.name.firstName + " " + credentials.user.name.lastName && (
-        <div className="w-full min-h-screen bg-black bg-opacity-25 inset-0 fixed z-50 flex justify-center items-center">
-          <div className="bg-white p-10 flex flex-col">
-            <p className="text-black">
-              Do you approve {fuldmagt.agentName} to pick up the fuldmagt?
-            </p>
-            <div className="flex w-full justify-around mt-5">
-              <button
-                className="px-3 py-2 bg-red-500 rounded text-primary font-medium"
-                onClick={rejectFuldmagtRequest}
-              >
-                Reject
-              </button>
-              <button
-                className="px-3 py-2 bg-green-500 rounded text-primary font-medium"
-                onClick={() => setSignatureOpen(true)}
-              >
-                Approve
-              </button>
+      {isFuldmagtPending &&
+        fuldmagt.agentName !==
+          credentials.user.name.firstName +
+            " " +
+            credentials.user.name.lastName && (
+          <div className="w-full min-h-screen bg-black bg-opacity-25 inset-0 fixed z-50 flex justify-center items-center">
+            <div className="bg-white p-10 flex flex-col">
+              <p className="text-black">
+                Do you approve {fuldmagt.agentName} to pick up the fuldmagt?
+              </p>
+              <div className="flex w-full justify-around mt-5">
+                <button
+                  className="px-3 py-2 bg-red-500 rounded text-primary font-medium"
+                  onClick={rejectFuldmagtRequest}
+                >
+                  Reject
+                </button>
+                <button
+                  className="px-3 py-2 bg-green-500 rounded text-primary font-medium"
+                  onClick={async () => {
+                    let orderId = localStorage.getItem("orderId");
+                    if (!orderId){
+                      handlePayment(state.item.price, "DKK");
+                      return;
+                    }
+                    let paymentStatus = await verifyPayment(orderId);
+                    if (paymentStatus.status == "Paid"){
+                      setSignatureOpen(true);
+                    }
+                    else if(paymentStatus.status == "Pending"){
+                      window.open(localStorage.getItem("paymentUrl"), "_blank");
+                    }        
+                  }}
+                >
+                  Approve
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
       <SignaturePopup
         isOpen={isSignatureOpen}
         onClose={() => setSignatureOpen(false)}
@@ -193,9 +219,9 @@ const EFuldmagtRequest = () => {
         signatureUrl={fuldmagt.signature}
       />
 
-      {fuldmagt.requestStatus === "pending" && (
-        <p>Pending Approval</p>
-      )}
+      <Payment isOpen={paymentPopupOpen} onClose={handlePayments} />
+
+      {fuldmagt.requestStatus === "pending" && <p>Pending Approval</p>}
 
       {!fuldmagt.requestStatus &&
         fuldmagt.fuldmagtGiverId !== credentials.user._id && (
