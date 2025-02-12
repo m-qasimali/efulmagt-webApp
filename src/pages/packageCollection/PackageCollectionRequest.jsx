@@ -601,8 +601,15 @@ const PackageCollectionRequest = () => {
                   //   setIsSignatureOpen(true);
                   // }
                 }
-                else {
-                  setPaymentPopup(true);
+                else {                  
+                  await handlePayment(location.state.fuldmagt.price, "DKK")
+                  .then(res => {
+                    console.log(res);
+                  })
+                  .catch(err => {
+                    console.log(err);
+                    
+                  })
                 }
               }}
             >

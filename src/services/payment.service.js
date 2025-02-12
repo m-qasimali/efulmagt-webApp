@@ -1,10 +1,13 @@
 import { toast } from "react-toastify";
 import axios from "axios";
+
+const paymentBaseUrl = "https://efulmagt-backend-payment-1.onrender.com"
+
 const handlePayment = async (amount, currency) => {
     const orderId = Math.floor(Math.random() * (9999999 - 1000000 + 1)) + 1000000;
 
     try {
-      const response = await axios.post("http://localhost:3000/create-quickpay-link", {
+      const response = await axios.post(`${paymentBaseUrl}/create-quickpay-link`, {
         orderId,
         amount: amount * 100,
         currency
@@ -25,9 +28,8 @@ const handlePayment = async (amount, currency) => {
   }
 
 const verifyPayment = async (orderId) => {
-    let data;
     try{
-        const response = await axios.get(`http://localhost:3000/verify-payment/${orderId}`)
+        const response = await axios.get(`${paymentBaseUrl}/verify-payment/${orderId}`)
         if (response) {
             console.log(response.data);
             return response.data
